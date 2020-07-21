@@ -13,7 +13,8 @@ var _ user.Storage = &UserStorage{}
 type UserStorage struct {
 	statementStorage
 
-	addStmt *sql.Stmt
+	addStmt  *sql.Stmt
+	findStmt *sql.Stmt
 }
 
 func NewUserStorage(db *DB) (*UserStorage, error) {
@@ -21,6 +22,7 @@ func NewUserStorage(db *DB) (*UserStorage, error) {
 
 	stmts := []stmt{
 		{Query: addUserQuery, Dst: &s.addStmt},
+		{Query: findUserQuery, Dst: &s.findStmt},
 	}
 
 	if err := s.initStatements(stmts); err != nil {
@@ -28,10 +30,6 @@ func NewUserStorage(db *DB) (*UserStorage, error) {
 	}
 
 	return s, nil
-}
-
-func scanUser(scanner sqlScanner, u *user.User) error {
-	return scanner.Scan(&u.ID, &u.Username, &u.CreatedAt)
 }
 
 const userFields = "username, created_at"
@@ -43,4 +41,25 @@ func (s *UserStorage) Add(u *user.User) error {
 	}
 
 	return nil
+}
+
+func scanUser(scanner sqlScanner, u *user.User) error {
+	return scanner.Scan(&u.ID, &u.Username, &u.CreatedAt)
+}
+
+const findUserQuery = "SELECT id, " + userFields + " FROM users WHERE username=$1"
+
+func (s *UserStorage) Find(username string) (*user.User, error) {
+	var u user.User
+
+	row := s.findStmt.QueryRow(username)
+	if err := scanUser(row, &u); err != nil {
+		if err == sql.ErrNoRows {
+			return &u, nil
+		}
+
+		return &u, errors.Wrap(err, "can't scan user")
+	}
+
+	return &u, nil
 }

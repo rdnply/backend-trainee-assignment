@@ -10,5 +10,5 @@ type User struct {
 
 type Storage interface {
 	Add(u *User) error
-	// Find(username string) (*User, error)
+	Find(username string) (*User, error)
 }

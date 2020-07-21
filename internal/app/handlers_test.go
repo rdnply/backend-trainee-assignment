@@ -13,12 +13,13 @@ func TestAPI(t *testing.T) {
 	mockApp := appForTest()
 	mockApp.UserStorage = &fortest.MockUserStorage{Items: []*user.User{
 		{1, "test name", format.NewNullTime()},
-		{2, "another name", format.NewNullTime()},
+		{2, "not unique name", format.NewNullTime()},
 	}}
 
 	tests := []fortest.APITestCase{
 		{"add user ok", "POST", "/users/add", `{"username":"unique name"}`, mockApp.addUser, http.StatusOK, `{"id":3}`},
-		{"add user incorrect json", "POST", "/users/add", `"username":"unique name"}`, mockApp.addUser, http.StatusBadRequest, ""},
+		{"add user incorrect json", "POST", "/users/add", `"username":"unique name"}`, mockApp.addUser, http.StatusBadRequest, "*incorrect json*"},
+		{"add user busy name", "POST", "/users/add", `{"username":"not unique name"}`, mockApp.addUser, http.StatusBadRequest, "*already exist*"},
 	}
 
 	for _, tc := range tests {

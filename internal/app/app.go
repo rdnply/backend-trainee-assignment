@@ -15,11 +15,11 @@ import (
 )
 
 type App struct {
-	addr           string
-	userStorage    user.Storage
-	chatStorage    chat.Storage
-	messageStorage message.Storage
-	logger         logger.Logger
+	Addr           string
+	UserStorage    user.Storage
+	ChatStorage    chat.Storage
+	MessageStorage message.Storage
+	Logger         logger.Logger
 }
 
 func New(addr string) (*App, map[string]io.Closer, error) {
@@ -38,9 +38,9 @@ func New(addr string) (*App, map[string]io.Closer, error) {
 	closers["user_storage"] = userStorage
 
 	return &App{
-		addr:        addr,
-		userStorage: userStorage,
-		logger:      initLogger(),
+		Addr:        addr,
+		UserStorage: userStorage,
+		Logger:      initLogger(),
 	}, closers, nil
 }
 

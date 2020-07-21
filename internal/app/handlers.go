@@ -12,11 +12,11 @@ func (app *App) addUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
-		app.ServerError(w, err)
+		app.BadRequest(w, err)
 		return
 	}
 
-	err = app.userStorage.Add(&u)
+	err = app.UserStorage.Add(&u)
 	if err != nil {
 		app.ServerError(w, err)
 		return

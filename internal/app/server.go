@@ -7,11 +7,11 @@ import (
 
 func (app *App) RunServer() {
 	srv := &http.Server{
-		Addr:    app.addr,
+		Addr:    app.Addr,
 		Handler: app.routes(),
 	}
 
-	app.logger.Infof("Server is running on %s", app.addr)
+	app.Logger.Infof("Server is running on %s")
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

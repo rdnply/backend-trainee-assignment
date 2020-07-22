@@ -14,7 +14,8 @@ type ChatStorage struct {
 
 	db *DB
 
-	findStmt *sql.Stmt
+	findStmt   *sql.Stmt
+	existsStmt *sql.Stmt
 }
 
 func NewChatStorage(db *DB) (*ChatStorage, error) {
@@ -22,6 +23,7 @@ func NewChatStorage(db *DB) (*ChatStorage, error) {
 
 	stmts := []stmt{
 		{Query: findChatQuery, Dst: &s.findStmt},
+		{Query: existsChatQuery, Dst: &s.existsStmt},
 	}
 
 	if err := s.initStatements(stmts); err != nil {
@@ -86,4 +88,16 @@ func (s *ChatStorage) Find(name string) (*chat.Chat, error) {
 
 func scanChat(scanner sqlScanner, c *chat.Chat) error {
 	return scanner.Scan(&c.ID, &c.Name, &c.CreatedAt)
+}
+
+const existsChatQuery = "SELECT EXISTS (SELECT chat_id FROM chats WHERE chat_id=$1)"
+
+func (s *ChatStorage) Exists(id int) (bool, error) {
+	var exists bool
+
+	if err := s.existsStmt.QueryRow(id).Scan(&exists); err != nil {
+		return exists, errors.Wrap(err, "can't exec query")
+	}
+
+	return exists, nil
 }

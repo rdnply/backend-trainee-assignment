@@ -1,21 +1,21 @@
 package message
 
 import (
-	"os/user"
 	"time"
 
 	"github.com/rdnply/backend-trainee-assignment/internal/chat"
+	"github.com/rdnply/backend-trainee-assignment/internal/user"
 )
 
 type Message struct {
-	ID        int
-	Chat      *chat.Chat
-	Author    *user.User
-	Text      string
-	CreatedAt time.Time
+	ID        int        `json:"id"`
+	Chat      *chat.Chat `json:"chat"`
+	Author    *user.User `json:"author"`
+	Text      string     `json:"text"`
+	CreatedAt time.Time  `json:"created_at"`
 }
 
 type Storage interface {
-	Add(m *Message) error
-	Get() ([]*Message, error)
+	Add(chatID, authorID int, text string) (int, error)
+	GetAll() ([]*Message, error)
 }

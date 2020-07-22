@@ -16,4 +16,5 @@ type Chat struct {
 type Storage interface {
 	Add(chatName string, userIDs []int) (int, error)
 	Find(name string) (*Chat, error)
+	Exists(id int) (bool, error)
 }

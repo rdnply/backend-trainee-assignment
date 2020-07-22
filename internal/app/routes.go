@@ -11,6 +11,7 @@ func (app *App) routes() http.Handler {
 	r.Route("/", func(r chi.Router) {
 		r.Post("/users/add", app.addUser)
 		r.Post("/chats/add", app.addChat)
+		r.Post("/messages/add", app.addMessage)
 	})
 
 	return r

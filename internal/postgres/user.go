@@ -12,9 +12,9 @@ var _ user.Storage = &UserStorage{}
 type UserStorage struct {
 	statementStorage
 
-	addStmt   *sql.Stmt
-	findStmt  *sql.Stmt
-	existStmt *sql.Stmt
+	addStmt    *sql.Stmt
+	findStmt   *sql.Stmt
+	existsStmt *sql.Stmt
 }
 
 func NewUserStorage(db *DB) (*UserStorage, error) {
@@ -23,7 +23,7 @@ func NewUserStorage(db *DB) (*UserStorage, error) {
 	stmts := []stmt{
 		{Query: addUserQuery, Dst: &s.addStmt},
 		{Query: findUserQuery, Dst: &s.findStmt},
-		{Query: existUserQuery, Dst: &s.existStmt},
+		{Query: existsUserQuery, Dst: &s.existsStmt},
 	}
 
 	if err := s.initStatements(stmts); err != nil {
@@ -65,12 +65,12 @@ func scanUser(scanner sqlScanner, u *user.User) error {
 	return scanner.Scan(&u.ID, &u.Username, &u.CreatedAt)
 }
 
-const existUserQuery = "SELECT EXISTS (SELECT user_id FROM users WHERE user_id=$1)"
+const existsUserQuery = "SELECT EXISTS (SELECT user_id FROM users WHERE user_id=$1)"
 
 func (s *UserStorage) Exists(id int) (bool, error) {
 	var exists bool
 
-	if err := s.existStmt.QueryRow(id).Scan(&exists); err != nil {
+	if err := s.existsStmt.QueryRow(id).Scan(&exists); err != nil {
 		return exists, errors.Wrap(err, "can't exec query")
 	}
 

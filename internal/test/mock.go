@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/rdnply/backend-trainee-assignment/internal/chat"
+	"github.com/rdnply/backend-trainee-assignment/internal/message"
 	"github.com/rdnply/backend-trainee-assignment/internal/user"
 )
 
@@ -66,4 +67,29 @@ func (m *MockChatStorage) Find(name string) (*chat.Chat, error) {
 	}
 
 	return &chat.Chat{}, nil
+}
+
+func (m *MockChatStorage) Exists(id int) (bool, error) {
+	for _, c := range m.Items {
+		if c.ID == id {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+var _ message.Storage = &MockMessageStorage{}
+
+type MockMessageStorage struct {
+	Items []*message.Message
+}
+
+func (m *MockMessageStorage) Add(chatID int, authorID int, text string) (int, error) {
+	m.Items = append(m.Items, &message.Message{Text: text})
+	return len(m.Items), nil
+}
+
+func (m *MockMessageStorage) GetAll() ([]*message.Message, error) {
+	panic("not implemented") // TODO: Implement
 }

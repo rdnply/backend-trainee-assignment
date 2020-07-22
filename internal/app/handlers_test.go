@@ -3,32 +3,48 @@ package app
 import (
 	"net/http"
 	"testing"
+	"time"
 
-	"github.com/rdnply/backend-trainee-assignment/internal/format"
-	"github.com/rdnply/backend-trainee-assignment/internal/fortest"
+	"github.com/rdnply/backend-trainee-assignment/internal/chat"
+	"github.com/rdnply/backend-trainee-assignment/internal/test"
 	"github.com/rdnply/backend-trainee-assignment/internal/user"
 )
 
 func TestAPI(t *testing.T) {
 	mockApp := appForTest()
-	mockApp.UserStorage = &fortest.MockUserStorage{Items: []*user.User{
-		{1, "test name", format.NewNullTime()},
-		{2, "not unique name", format.NewNullTime()},
-	}}
+	users := []*user.User{
+		{1, "name already exist", time.Now()},
+		{2, "name", time.Now()},
+		{3, "another name", time.Now()},
+	}
 
-	tests := []fortest.APITestCase{
-		{"add user ok", "POST", "/users/add", `{"username":"unique name"}`, mockApp.addUser, http.StatusOK, `{"id":3}`},
+	chats := []*chat.Chat{
+		{1, "name already exist", users, time.Now()},
+		{2, "another chat name", []*user.User{users[0], users[1]}, time.Now()},
+	}
+
+	mockApp.UserStorage = &test.MockUserStorage{Items: users}
+
+	mockApp.ChatStorage = &test.MockChatStorage{Items: chats}
+
+	tests := []test.APITestCase{
+		{"add user ok", "POST", "/users/add", `{"username":"unique name"}`, mockApp.addUser, http.StatusCreated, `{"id":4}`},
 		{"add user incorrect json", "POST", "/users/add", `"username":"unique name"}`, mockApp.addUser, http.StatusBadRequest, "*incorrect json*"},
-		{"add user busy name", "POST", "/users/add", `{"username":"not unique name"}`, mockApp.addUser, http.StatusBadRequest, "*already exist*"},
+		{"add user busy name", "POST", "/users/add", `{"username":"name already exist"}`, mockApp.addUser, http.StatusBadRequest, "*already exist*"},
+
+		{"add chat ok", "POST", "/chats/add", `{"name":"unique name", "users":[1,2,3]}`, mockApp.addChat, http.StatusCreated, `{"id":3}`},
+		{"add chat incorrect json", "POST", "/chats/add", `"name":"unique name", "users":[1,2,3]}`, mockApp.addChat, http.StatusBadRequest, "*incorrect json*"},
+		{"add chat busy name", "POST", "/chats/add", `{"name":"name already exist", "users":[1,2,3]}`, mockApp.addChat, http.StatusBadRequest, "*already exist*"},
+		{"add chat user not found", "POST", "/chats/add", `{"name":"unique name", "users":[-111,2,3]}`, mockApp.addChat, http.StatusNotFound, "*not found user*"},
 	}
 
 	for _, tc := range tests {
-		fortest.Endpoint(t, tc)
+		test.Endpoint(t, tc)
 	}
 }
 
 func appForTest() *App {
 	return &App{
-		Logger: fortest.Logger(),
+		Logger: test.Logger(),
 	}
 }

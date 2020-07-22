@@ -1,18 +1,19 @@
 package chat
 
 import (
-	"os/user"
 	"time"
+
+	"github.com/rdnply/backend-trainee-assignment/internal/user"
 )
 
 type Chat struct {
-	ID        int
-	Name      string
-	Users     []*user.User
-	CreatedAt *time.Time
+	ID        int          `json:"id"`
+	Name      string       `json:"name"`
+	Users     []*user.User `json:"users"`
+	CreatedAt time.Time    `json:"created_at"`
 }
 
 type Storage interface {
-	Add(c *Chat) error
-	Get() ([]*Chat, error)
+	Add(chatName string, userIDs []int) (int, error)
+	Find(name string) (*Chat, error)
 }

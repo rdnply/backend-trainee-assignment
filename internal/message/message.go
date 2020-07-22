@@ -12,7 +12,7 @@ type Message struct {
 	Chat      *chat.Chat
 	Author    *user.User
 	Text      string
-	CreatedAt *time.Time
+	CreatedAt time.Time
 }
 
 type Storage interface {

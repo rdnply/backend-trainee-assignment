@@ -1,4 +1,4 @@
-package fortest
+package test
 
 import (
 	"bytes"
@@ -32,12 +32,12 @@ func Endpoint(t *testing.T, tc APITestCase) {
 		res := httptest.NewRecorder()
 
 		tc.Handler.ServeHTTP(res, req)
-		assert.Equal(t, tc.WantStatus, res.Code, wrongCode(tc.WantStatus, res.Code))
+		assert.Equal(t, tc.WantStatus, res.Code, wrongCode(res.Code, tc.WantStatus))
 
 		if tc.WantResponse != "" {
 			pattern := strings.Trim(tc.WantResponse, "*")
 			if pattern != tc.WantResponse {
-				assert.Contains(t, res.Body.String(), pattern, wrongBody(pattern, res.Body.String()))
+				assert.Contains(t, res.Body.String(), pattern, wrongBody(res.Body.String(), pattern))
 			} else {
 				assert.JSONEq(t, tc.WantResponse, res.Body.String(), "response mismatch")
 			}

@@ -37,9 +37,16 @@ func New(addr string) (*App, map[string]io.Closer, error) {
 	}
 	closers["user_storage"] = userStorage
 
+	chatStorage, err := postgres.NewChatStorage(db)
+	if err != nil {
+		return nil, nil, err
+	}
+	closers["chat_storage"] = chatStorage
+
 	return &App{
 		Addr:        addr,
 		UserStorage: userStorage,
+		ChatStorage: chatStorage,
 		Logger:      initLogger(),
 	}, closers, nil
 }

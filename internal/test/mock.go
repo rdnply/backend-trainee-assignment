@@ -54,9 +54,10 @@ type MockChatStorage struct {
 	Items []*chat.Chat
 }
 
-func (m *MockChatStorage) Add(chatName string, userIDs []int) (int, error) {
-	m.Items = append(m.Items, &chat.Chat{Name: chatName})
-	return len(m.Items), nil
+func (m *MockChatStorage) Add(c *chat.Chat) error {
+	m.Items = append(m.Items, c)
+	c.ID = len(m.Items)
+	return nil
 }
 
 func (m *MockChatStorage) Find(name string) (*chat.Chat, error) {
@@ -85,9 +86,10 @@ type MockMessageStorage struct {
 	Items []*message.Message
 }
 
-func (m *MockMessageStorage) Add(chatID int, authorID int, text string) (int, error) {
-	m.Items = append(m.Items, &message.Message{Text: text})
-	return len(m.Items), nil
+func (m *MockMessageStorage) Add(msg *message.Message) error {
+	m.Items = append(m.Items, msg)
+	msg.ID = len(m.Items)
+	return nil
 }
 
 func (m *MockMessageStorage) GetAll() ([]*message.Message, error) {

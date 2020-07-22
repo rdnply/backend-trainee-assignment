@@ -31,14 +31,12 @@ func NewMessageStorage(db *DB) (*MessageStorage, error) {
 
 const addMessageQuery = "INSERT INTO messages(chat_id, author_id, text) VALUES ($1,$2,$3) RETURNING message_id "
 
-func (s *MessageStorage) Add(chatID, authorID int, text string) (int, error) {
-	var messageID int
-
-	if err := s.addStmt.QueryRow(chatID, authorID, text).Scan(&messageID); err != nil {
-		return 0, errors.Wrap(err, "can't exec query")
+func (s *MessageStorage) Add(m *message.Message) error {
+	if err := s.addStmt.QueryRow(m.ChatID, m.AuthorID, m.Text).Scan(&m.ID); err != nil {
+		return errors.Wrap(err, "can't exec query")
 	}
 
-	return messageID, nil
+	return nil
 }
 
 func (m *MessageStorage) GetAll() ([]*message.Message, error) {

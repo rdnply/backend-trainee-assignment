@@ -36,36 +36,35 @@ func NewChatStorage(db *DB) (*ChatStorage, error) {
 const addChatQuery = "INSERT INTO chats(name) VALUES ($1) RETURNING chat_id"
 const addChatUserRelationQuery = "INSERT INTO chat_user(chat_id, user_id) VALUES($1, $2)"
 
-func (s *ChatStorage) Add(chatName string, userIDs []int) (int, error) {
+func (s *ChatStorage) Add(newChat *chat.Chat) error {
 	tx, err := s.db.Session.Begin()
 	if err != nil {
-		return 0, errors.Wrap(err, "can't start transaction")
+		return errors.Wrap(err, "can't start transaction")
 	}
 	defer tx.Rollback() // The rollback will be ignored if the tx has been committed later in the function.
 
-	var chatID int
-	err = tx.QueryRow(addChatQuery, chatName).Scan(&chatID)
+	err = tx.QueryRow(addChatQuery, newChat.Name).Scan(&newChat.ID)
 	if err != nil {
-		return 0, errors.Wrap(err, "can't add chat")
+		return errors.Wrap(err, "can't add chat")
 	}
 
 	stmt, err := tx.Prepare(addChatUserRelationQuery)
 	if err != nil {
-		return 0, errors.Wrap(err, "can't prepare statement")
+		return errors.Wrap(err, "can't prepare statement")
 	}
 	defer stmt.Close()
 
-	for _, userID := range userIDs {
-		if _, err := stmt.Exec(chatID, userID); err != nil {
-			return 0, errors.Wrap(err, "can't add relation")
+	for _, userID := range newChat.UsersIDs {
+		if _, err := stmt.Exec(newChat.ID, userID); err != nil {
+			return errors.Wrap(err, "can't add relation")
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return 0, errors.Wrap(err, "can't commit transaction")
+		return errors.Wrap(err, "can't commit transaction")
 	}
 
-	return chatID, nil
+	return nil
 }
 
 const chatFields = "name, created_at"
@@ -100,4 +99,8 @@ func (s *ChatStorage) Exists(id int) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+func (s *ChatStorage) GetAll(id int) ([]*chat.Chat, error) {
+	return nil, nil
 }

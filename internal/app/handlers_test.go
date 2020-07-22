@@ -20,13 +20,13 @@ func TestAPI(t *testing.T) {
 	}
 
 	chats := []*chat.Chat{
-		{1, "name already exist", users, time.Now()},
-		{2, "another chat name", []*user.User{users[0], users[1]}, time.Now()},
+		{1, "name already exist", []int{1, 2, 3}, time.Now()},
+		{2, "another chat name", []int{1, 2}, time.Now()},
 	}
 
 	messages := []*message.Message{
-		{1, chats[0], users[1], "message", time.Now()},
-		{2, chats[1], users[0], "another message", time.Now()},
+		{1, 1, 2, "message", time.Now()},
+		{2, 2, 1, "another message", time.Now()},
 	}
 
 	mockApp.UserStorage = &test.MockUserStorage{Items: users}

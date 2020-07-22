@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/rdnply/backend-trainee-assignment/internal/chat"
+	"github.com/rdnply/backend-trainee-assignment/internal/message"
 	"github.com/rdnply/backend-trainee-assignment/internal/user"
 )
 
@@ -35,18 +37,13 @@ func (app *App) addUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) addChat(w http.ResponseWriter, r *http.Request) {
-	type chatInfo struct {
-		Name  string `json:"name"`
-		Users []int  `json:"users"`
-	}
-
-	var c chatInfo
+	var c chat.Chat
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		app.BadRequest(w, err, "incorrect json")
 		return
 	}
 
-	exists, id, err := app.UserStorage.AllExists(c.Users)
+	exists, id, err := app.UserStorage.AllExists(c.UsersIDs)
 	if err != nil {
 		app.ServerError(w, err, "")
 		return
@@ -66,23 +63,16 @@ func (app *App) addChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newID, err := app.ChatStorage.Add(c.Name, c.Users)
-	if err != nil {
+	if err := app.ChatStorage.Add(&c); err != nil {
 		app.ServerError(w, err, "")
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, map[string]int{"chat_id": newID})
+	respondJSON(w, http.StatusCreated, map[string]int{"chat_id": c.ID})
 }
 
 func (app *App) addMessage(w http.ResponseWriter, r *http.Request) {
-	type msgInfo struct {
-		ChatID   int    `json:"chat"`
-		AuthorID int    `json:"author"`
-		Text     string `json:"text"`
-	}
-
-	var m msgInfo
+	var m message.Message
 	if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
 		app.BadRequest(w, err, "incorrect json")
 		return
@@ -94,7 +84,7 @@ func (app *App) addMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !existsChat {
-		app.NotFound(w, err, fmt.Sprintf("not found chat: %d", m.ChatID))
+		app.NotFound(w, err, fmt.Sprintf("not found chat with id: %d", m.ChatID))
 		return
 	}
 
@@ -108,13 +98,40 @@ func (app *App) addMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newID, err := app.MessageStorage.Add(m.ChatID, m.AuthorID, m.Text)
-	if err != nil {
+	if err := app.MessageStorage.Add(&m); err != nil {
 		app.ServerError(w, err, "")
 		return
 	}
 
-	respondJSON(w, http.StatusCreated, map[string]int{"message_id": newID})
+	respondJSON(w, http.StatusCreated, map[string]int{"message_id": m.ID})
+}
+
+func (app *App) getChats(w http.ResponseWriter, r *http.Request) {
+	type userInfo struct {
+		ID int `json:"user"`
+	}
+
+	var u userInfo
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+		app.BadRequest(w, err, "incorrect json")
+		return
+	}
+
+	existsUser, err := app.UserStorage.Exists(u.ID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+	if !existsUser {
+		app.NotFound(w, err, fmt.Sprintf("not found user with id: %d", u.ID))
+		return
+	}
+
+	/*  chats, err := app.ChatStorage.GetAll(u.ID) */
+	// if err != nil {
+	//     app.ServerError(w, err, "")
+	//     return
+	/* } */
 }
 
 func respondJSON(w http.ResponseWriter, successCode int, payload interface{}) {

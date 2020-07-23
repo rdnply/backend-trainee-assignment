@@ -101,6 +101,88 @@ func (s *ChatStorage) Exists(id int) (bool, error) {
 	return exists, nil
 }
 
-func (s *ChatStorage) GetAll(id int) ([]*chat.Chat, error) {
-	return nil, nil
+const getAllChatsQuery = "SELECT c.chat_id, c.name, c.created_at FROM chats c " +
+	"JOIN chat_user cu ON cu.chat_id = c.chat_id " +
+	"JOIN " +
+	"(SELECT chat_id, MAX(created_at) as max_time " +
+	"FROM messages GROUP BY chat_id " +
+	")AS m ON m.chat_id = c.chat_id " +
+	"WHERE cu.user_id = $1 " +
+	"ORDER BY max_time;"
+
+const getAllUserIDsQuery = "SELECT u.user_id FROM users u " +
+	"JOIN chat_user cu ON cu.user_id = u.user_id " +
+	"WHERE cu.chat_id = $1;"
+
+func (s *ChatStorage) GetAll(userID int) ([]*chat.Chat, error) {
+	tx, err := s.db.Session.Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "can't start transaction")
+	}
+	defer tx.Rollback() // The rollback will be ignored if the tx has been committed later in the function.
+
+	rows, err := tx.Query(getAllChatsQuery, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't get all chats")
+	}
+	defer rows.Close()
+
+	chats := make([]*chat.Chat, 0)
+	for rows.Next() {
+		var c chat.Chat
+		if err := scanChat(rows, &c); err != nil {
+			return nil, errors.Wrap(err, "can't scan row with chat")
+		}
+
+		chats = append(chats, &c)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "rows contain error")
+	}
+
+	stmt, err := tx.Prepare(getAllUserIDsQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't prepare statement")
+	}
+	defer stmt.Close()
+
+	chats, err = addUserIDs(stmt, chats)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "can't commit transaction")
+	}
+
+	return chats, nil
+
+}
+
+func addUserIDs(stmt *sql.Stmt, chats []*chat.Chat) ([]*chat.Chat, error) {
+	for _, chat := range chats {
+		rows, err := stmt.Query(chat.ID)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't get all users in chat")
+		}
+
+		ids := make([]int, 0)
+		for rows.Next() {
+			var id int
+			if err := rows.Scan(&id); err != nil {
+				return nil, errors.Wrap(err, "can't scan row with id")
+			}
+
+			ids = append(ids, id)
+		}
+
+		if err = rows.Err(); err != nil {
+			return nil, errors.Wrap(err, "rows contain error")
+		}
+
+		chat.UsersIDs = ids
+	}
+
+	return chats, nil
 }

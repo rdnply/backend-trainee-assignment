@@ -39,19 +39,19 @@ func Endpoint(t *testing.T, tc APITestCase) {
 			if pattern != tc.WantResponse {
 				assert.Contains(t, res.Body.String(), pattern, wrongBody(res.Body.String(), pattern))
 			} else {
-				assert.JSONEq(t, tc.WantResponse, res.Body.String(), "response mismatch")
+				assert.JSONEq(t, tc.WantResponse, res.Body.String(), wrongBody(res.Body.String(), tc.WantResponse))
 			}
 		}
 
 	})
 }
 
-func wrongCode(want int, actual int) string {
-	return fmt.Sprintf("returned wrong status code: got %v, want %v", want, actual)
+func wrongCode(actual, want int) string {
+	return fmt.Sprintf("returned wrong status code: got %v, want %v", actual, want)
 }
 
-func wrongBody(want string, actual string) string {
-	return fmt.Sprintf("returned unexpected body: got %v\n, want %v", want, actual)
+func wrongBody(actual, want string) string {
+	return fmt.Sprintf("returned unexpected body: got %v,\n want %v", actual, want)
 }
 
 func Logger() logger.Logger {

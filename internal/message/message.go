@@ -1,15 +1,13 @@
 package message
 
-import (
-	"time"
-)
+import "github.com/rdnply/backend-trainee-assignment/internal/format"
 
 type Message struct {
-	ID        int       `json:"id"`
-	ChatID    int       `json:"chat"`
-	AuthorID  int       `json:"author"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int             `json:"id"`
+	ChatID    int             `json:"chat"`
+	AuthorID  int             `json:"author"`
+	Text      string          `json:"text"`
+	CreatedAt format.JSONTime `json:"created_at"`
 }
 
 type Storage interface {

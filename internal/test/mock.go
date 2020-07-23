@@ -80,6 +80,21 @@ func (m *MockChatStorage) Exists(id int) (bool, error) {
 	return false, nil
 }
 
+func (m *MockChatStorage) GetAll(id int) ([]*chat.Chat, error) {
+	chats := make([]*chat.Chat, 0)
+
+	for _, chat := range m.Items {
+		for _, userID := range chat.UsersIDs {
+			if id == userID {
+				chats = append(chats, chat)
+				break
+			}
+		}
+	}
+
+	return chats, nil
+}
+
 var _ message.Storage = &MockMessageStorage{}
 
 type MockMessageStorage struct {

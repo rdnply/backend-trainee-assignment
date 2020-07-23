@@ -127,11 +127,13 @@ func (app *App) getChats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*  chats, err := app.ChatStorage.GetAll(u.ID) */
-	// if err != nil {
-	//     app.ServerError(w, err, "")
-	//     return
-	/* } */
+	chats, err := app.ChatStorage.GetAll(u.ID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, chats)
 }
 
 func respondJSON(w http.ResponseWriter, successCode int, payload interface{}) {

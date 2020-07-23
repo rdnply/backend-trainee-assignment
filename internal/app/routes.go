@@ -13,6 +13,7 @@ func (app *App) routes() http.Handler {
 		r.Post("/chats/add", app.addChat)
 		r.Post("/messages/add", app.addMessage)
 		r.Post("/chats/get", app.getChats)
+		r.Post("/messages/get", app.getMessages)
 	})
 
 	return r

@@ -1,6 +1,8 @@
 package test
 
 import (
+	"sort"
+
 	"github.com/rdnply/backend-trainee-assignment/internal/chat"
 	"github.com/rdnply/backend-trainee-assignment/internal/message"
 	"github.com/rdnply/backend-trainee-assignment/internal/user"
@@ -107,6 +109,18 @@ func (m *MockMessageStorage) Add(msg *message.Message) error {
 	return nil
 }
 
-func (m *MockMessageStorage) GetAll() ([]*message.Message, error) {
-	panic("not implemented") // TODO: Implement
+func (m *MockMessageStorage) GetAll(chatID int) ([]*message.Message, error) {
+	messages := make([]*message.Message, 0)
+
+	for _, msg := range m.Items {
+		if chatID == msg.ChatID {
+			messages = append(messages, msg)
+		}
+	}
+
+	// descenging sorting
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].CreatedAt.Time.After(messages[j].CreatedAt.Time)
+	})
+	return messages, nil
 }

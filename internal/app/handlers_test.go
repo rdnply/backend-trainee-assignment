@@ -21,13 +21,14 @@ func TestAPI(t *testing.T) {
 	}
 
 	chats := []*chat.Chat{
-		{1, "name already exist", []int{1, 2, 3}, format.NewTime(time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC))},
+		{1, "already exist", []int{1, 2, 3}, format.NewTime(time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC))},
 		{2, "another chat name", []int{1, 2}, format.NewTime(time.Date(2017, time.August, 15, 0, 0, 0, 0, time.UTC))},
 	}
 
 	messages := []*message.Message{
 		{1, 1, 2, "message", format.NewTime(time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC))},
-		{2, 2, 1, "another message", format.NewTime(time.Date(2017, time.August, 15, 0, 0, 0, 0, time.UTC))},
+		{2, 1, 2, "msg", format.NewTime(time.Date(2017, time.August, 15, 0, 0, 0, 0, time.UTC))},
+		{3, 2, 1, "another message", format.NewTime(time.Date(2018, time.August, 15, 0, 0, 0, 0, time.UTC))},
 	}
 
 	mockApp.UserStorage = &test.MockUserStorage{Items: users}
@@ -46,13 +47,13 @@ func TestAPI(t *testing.T) {
 			mockApp.addChat, http.StatusCreated, `{"chat_id":3}`},
 		{"add chat incorrect json", "POST", "/chats/add", `"name":"unique name", "users":[1,2,3]}`,
 			mockApp.addChat, http.StatusBadRequest, "*incorrect json*"},
-		{"add chat busy name", "POST", "/chats/add", `{"name":"name already exist", "users":[1,2,3]}`,
+		{"add chat busy name", "POST", "/chats/add", `{"name":"already exist", "users":[1,2,3]}`,
 			mockApp.addChat, http.StatusBadRequest, "*already exists*"},
 		{"add chat user not found", "POST", "/chats/add", `{"name":"unique name", "users":[-111,2,3]}`,
 			mockApp.addChat, http.StatusNotFound, "*not found user*"},
 
 		{"add message ok", "POST", "/messages/add", `{"chat":2, "author":2, "text":"message"}`,
-			mockApp.addMessage, http.StatusCreated, `{"message_id":3}`},
+			mockApp.addMessage, http.StatusCreated, `{"message_id":4}`},
 		{"add message incorrect json", "POST", "/messages/add", `"chat":2, "author":2, "text":"message"}`,
 			mockApp.addMessage, http.StatusBadRequest, "*incorrect json*"},
 		{"add message chat not found", "POST", "/messages/add", `{"chat":-222, "author":2, "text":"message"}`,
@@ -62,12 +63,21 @@ func TestAPI(t *testing.T) {
 
 		{"get chats ok", "POST", "/chats/get", `{"user":1}`,
 			mockApp.getChats, http.StatusOK,
-			`[{"id":1,"name":"name already exist","users":[1,2,3],"created_at":"2016-08-15T00:00:00Z"},` +
+			`[{"id":1,"name":"already exist","users":[1,2,3],"created_at":"2016-08-15T00:00:00Z"},` +
 				`{"id":2,"name":"another chat name","users":[1,2],"created_at":"2017-08-15T00:00:00Z"}]`},
 		{"get chats incorrect json", "POST", "/chats/get", `"user":1}`,
 			mockApp.getChats, http.StatusBadRequest, "*incorrect json*"},
 		{"get chats user not found", "POST", "/chats/get", `{"user":-111}`,
 			mockApp.getChats, http.StatusNotFound, "*not found user*"},
+
+		{"get messages ok", "POST", "/messages/get", `{"chat":1}`,
+			mockApp.getMessages, http.StatusOK,
+			`[{"id":2,"chat":1,"author":2,"text":"msg","created_at":"2017-08-15T00:00:00Z"},` +
+				`{"id":1,"chat":1,"author":2,"text":"message","created_at":"2016-08-15T00:00:00Z"}]`},
+		{"get messages incorrect json", "POST", "/messages/get", `"chat":1}`,
+			mockApp.getMessages, http.StatusBadRequest, "*incorrect json*"},
+		{"get messages chat not found", "POST", "/messages/get", `{"chat":-111}`,
+			mockApp.getMessages, http.StatusNotFound, "*not found chat*"},
 	}
 
 	for _, tc := range tests {

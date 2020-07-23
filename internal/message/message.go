@@ -12,5 +12,5 @@ type Message struct {
 
 type Storage interface {
 	Add(m *Message) error
-	GetAll() ([]*Message, error)
+	GetAll(chatID int) ([]*Message, error)
 }

@@ -68,7 +68,7 @@ func (s *ChatStorage) Add(newChat *chat.Chat) error {
 }
 
 const chatFields = "name, created_at"
-const findChatQuery = "SELECT chat_id, " + chatFields + " FROM chats WHERE name=$1"
+const findChatQuery = "SELECT chat_id, " + chatFields + " FROM chats WHERE name=$1;"
 
 func (s *ChatStorage) Find(name string) (*chat.Chat, error) {
 	var c chat.Chat
@@ -89,7 +89,7 @@ func scanChat(scanner sqlScanner, c *chat.Chat) error {
 	return scanner.Scan(&c.ID, &c.Name, &c.CreatedAt)
 }
 
-const existsChatQuery = "SELECT EXISTS (SELECT chat_id FROM chats WHERE chat_id=$1)"
+const existsChatQuery = "SELECT EXISTS (SELECT chat_id FROM chats WHERE chat_id=$1);"
 
 func (s *ChatStorage) Exists(id int) (bool, error) {
 	var exists bool

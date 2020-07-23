@@ -136,6 +136,36 @@ func (app *App) getChats(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, chats)
 }
 
+func (app *App) getMessages(w http.ResponseWriter, r *http.Request) {
+	type chatInfo struct {
+		ID int `json:"chat"`
+	}
+
+	var c chatInfo
+	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+		app.BadRequest(w, err, "incorrect json")
+		return
+	}
+
+	existsChat, err := app.ChatStorage.Exists(c.ID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+	if !existsChat {
+		app.NotFound(w, err, fmt.Sprintf("not found chat with id: %d", c.ID))
+		return
+	}
+
+	messages, err := app.MessageStorage.GetAll(c.ID)
+	if err != nil {
+		app.ServerError(w, err, "")
+		return
+	}
+
+	respondJSON(w, http.StatusOK, messages)
+}
+
 func respondJSON(w http.ResponseWriter, successCode int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {

@@ -1,5 +1,13 @@
 # Тестовое задание на позицию стажера-бекендера
 
+## Запуск
+
+```bash
+git clone https://github.com/rdnply/backend-trainee-assignment.git
+cd backend-trainee-assignment
+sudo docker-compose up
+```
+
 Цель задания – разработать чат-сервер, предоставляющий HTTP API для работы с чатами и сообщениями пользователя.
 
 Детали реализации:

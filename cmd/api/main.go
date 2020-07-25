@@ -3,11 +3,14 @@ package main
 import (
 	"io"
 	"log"
+	"os"
 
 	"github.com/rdnply/backend-trainee-assignment/internal/app"
 )
 
 func main() {
+	log.SetOutput(os.Stdout)
+
 	app, closers, err := app.New(":9000")
 	if err != nil {
 		log.Fatal(err)

@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/golang/gddo v0.0.0-20200715224205-051695c33a3f
+	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.7.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.4.0

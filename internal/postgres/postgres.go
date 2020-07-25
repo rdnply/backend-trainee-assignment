@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq" // init postgres driver
@@ -13,13 +15,13 @@ type DB struct {
 	Session *sql.DB
 }
 
-func New(filename string) (*DB, error) {
-	URL, err := ParseConfig(filename)
+func New() (*DB, error) {
+	url, err := getDBConfig()
 	if err != nil {
-		return nil, errors.Wrapf(err, "can't parse configuration for database")
+		return nil, errors.Wrap(err, "can't get env vars with db configuration")
 	}
 
-	db, err := sql.Open("postgres", URL)
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't open connection to postgres")
 	}
@@ -27,6 +29,20 @@ func New(filename string) (*DB, error) {
 	return &DB{
 		Session: db,
 	}, nil
+}
+
+func getDBConfig() (string, error) {
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	url := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	return url, nil
 }
 
 func (d *DB) CheckConnection() error {
@@ -39,7 +55,7 @@ func (d *DB) CheckConnection() error {
 		}
 
 		nextAttemptWait := time.Duration(attempt) * time.Second
-		log.Printf("Attempt %d: can't establish a connection with the db, wait for %v: %s",
+		log.Printf("attempt %d: can't establish a connection with the db, wait for %v: %s",
 			attempt,
 			nextAttemptWait,
 			err,

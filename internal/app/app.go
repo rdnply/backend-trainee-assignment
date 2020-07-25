@@ -1,10 +1,8 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"log"
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/rdnply/backend-trainee-assignment/internal/chat"
@@ -59,14 +57,7 @@ func New(addr string) (*App, map[string]io.Closer, error) {
 }
 
 func connectPostgres() (*postgres.DB, error) {
-	_ = os.Chdir("../..")
-
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, errors.Wrap(err, "can't get path")
-	}
-
-	db, err := postgres.New(fmt.Sprintf("%s/config/postgres.json", pwd))
+	db, err := postgres.New()
 	if err != nil {
 		return nil, errors.Wrap(err, "can't create database instance")
 	}
